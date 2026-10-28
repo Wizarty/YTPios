@@ -63,6 +63,7 @@ export class YouTube extends EventTarget {
   playlists(pageToken) { return this.request('playlists', {part:'snippet,contentDetails', mine:'true', maxResults:24, pageToken}, {auth:true}); }
   playlist(playlistId, pageToken) { return this.request('playlistItems', {part:'snippet', playlistId, maxResults:24, pageToken}); }
   channel(id) { return this.request('channels', {part:'snippet,contentDetails', id}); }
+  myChannel() { return this.request('channels', {part:'snippet', mine:'true'}, {auth:true}); }
   comments(videoId, pageToken) { return this.request('commentThreads', {part:'snippet', videoId, textFormat:'plainText', maxResults:20, pageToken}); }
   rate(id, rating) { return this.request('videos/rate', {id, rating}, {method:'POST'}); }
   subscribe(channelId) { return this.request('subscriptions', {part:'snippet'}, {method:'POST', body:{snippet:{resourceId:{kind:'youtube#channel', channelId}}}}); }

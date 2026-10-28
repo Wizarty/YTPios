@@ -11,7 +11,7 @@ try {
   await page.route('https://i.ytimg.com/**', route => route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));
   await page.route('https://accounts.google.com/gsi/client', route => route.fulfill({contentType:'text/javascript',body:`
     window.google={accounts:{oauth2:{
-      initTokenClient: options => ({requestAccessToken: () => setTimeout(() => options.callback({access_token:'mock-memory-token',expires_in:3600,scope:options.scope}),0)}),
+      initTokenClient: options => ({requestAccessToken: request => { window.lastOAuthPrompt=request.prompt; const token=request.prompt.includes('select_account')?'mock-second-token':'mock-memory-token'; setTimeout(() => options.callback({access_token:token,expires_in:3600,scope:options.scope}),0); }}),
       revoke: (token,callback) => callback({successful:true})
     }}};
   `}));
@@ -24,6 +24,7 @@ try {
     if (req.method() === 'OPTIONS') return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':base,'Access-Control-Allow-Methods':'GET, POST, DELETE','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
     if (req.method() !== 'GET') writes.push({endpoint,body:req.postDataJSON(),headers:req.headers()});
     let data={items:[]};
+    if (endpoint==='channels' && url.searchParams.get('mine')==='true') data={items:[{id:'test-channel',snippet:{title:req.headers().authorization==='Bearer mock-second-token'?'Second channel':'First channel'}}]};
     if (endpoint==='search') data=url.searchParams.has('pageToken')?{items:[{...item,id:{videoId:'eRsGyueVLvQ'},snippet:{title:'Second video'}}]}:{items:[item],nextPageToken:'second'};
     if (endpoint==='subscriptions') data={items:[{id:'subscription-id',snippet:{title:'Test channel',resourceId:{channelId:'channel-id'}}}]};
     if (endpoint==='playlists') data=req.method()==='POST'?{id:'new-playlist'}:{items:[{id:'playlist-id',snippet:{title:'My playlist'},contentDetails:{itemCount:1}}]};
@@ -74,6 +75,18 @@ try {
   await page.reload();
   await page.locator('#google-settings').click(); assert.match(await page.locator('#google-state').textContent(),/не выполнен/);
   assert.equal(await page.locator('#api-key').inputValue(),'public_test_api_key_123456789');
+  await page.locator('#settings-dialog [data-close]').click();
+  await page.locator('#account-entry').click();
+  await page.locator('#account-login').click();
+  await page.locator('#account-channels').getByRole('link',{name:'First channel'}).waitFor();
+  await page.locator('#account-switch').click();
+  await page.locator('#account-channels').getByRole('link',{name:'Second channel'}).waitFor();
+  assert.match(await page.evaluate(() => window.lastOAuthPrompt),/select_account/);
+  assert.equal(await page.locator('#account-channels').getByRole('link',{name:'First channel'}).count(),0);
+  await page.locator('#account-logout').click();
+  assert.equal(await page.locator('#account-channels a').count(),0);
+  assert.equal(await page.locator('#account-connected').isVisible(),false);
+  assert.equal(await page.evaluate(() => Object.values(localStorage).some(v => v.includes('mock-second-token'))),false);
   assert.deepEqual(errors,[]);
   console.log('PASS mocked Google integration: configuration, OAuth, pagination, subscriptions, playlists, write-scope gating, ratings, comments, logout, memory-only tokens');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

@@ -9,38 +9,68 @@ export function initIntegration({importVideo, currentVideo}) {
   function authState() {
     $('#google-state').textContent = api.signedIn ? 'Google подключён. Сессия действует в этой вкладке.' : 'Вход Google не выполнен.';
     $('#google-disconnect').hidden = !api.signedIn;
+    $('#account-connected').hidden = !api.signedIn;
+    $('#account-login').hidden = api.signedIn;
+    $('#account-entry').textContent = api.signedIn ? 'Мой YouTube' : 'Войти через Google';
   }
+  let profileVersion = 0;
+  async function updateProfile() {
+    const version = ++profileVersion;
+    $('#account-channels').replaceChildren(); $('#about-button').textContent = 'Я';
+    $('#account-channel').textContent = api.signedIn ? 'Загружаем ваш канал…' : 'Войдите, чтобы открыть свои подписки и плейлисты.';
+    if (!api.signedIn) return;
+    try {
+      const data = await api.myChannel(); if (version !== profileVersion || !api.signedIn) return;
+      $('#account-channel').textContent = data.items?.length ? 'Подключённые каналы YouTube' : 'Вход выполнен. YouTube не вернул канал для этого аккаунта.';
+      for (const item of data.items || []) {
+        if (!/^[\w-]{1,80}$/.test(item.id || '')) continue;
+        const link = el('a', item.snippet?.title || 'Открыть канал на YouTube', 'chip');
+        link.href = `https://www.youtube.com/channel/${encodeURIComponent(item.id)}`; link.target = '_blank'; link.rel = 'noopener';
+        $('#account-channels').append(link);
+      }
+    } catch (e) { if (version === profileVersion) $('#account-channel').textContent = e.message; }
+  }
+  api.addEventListener('change', updateProfile);
   api.addEventListener('change', () => { authState(); view++; generation++; $('#cloud-results').replaceChildren(); $('#cloud-actions').replaceChildren(); nextPage = null; $('#cloud-more').hidden = true; status('Сессия изменилась. Выберите раздел повторно.'); });
   async function prepareLogin() {
     $('#google-login').disabled = true; $('#google-write').disabled = true;
-    if (!api.config.clientId) return;
-    try { await loadIdentity(); $('#google-login').disabled = false; $('#google-write').disabled = false; }
-    catch (e) { $('#settings-status').textContent = e.message; }
+    $('#account-login').disabled = true; $('#account-switch').disabled = true;
+    if (!api.config.clientId) { $('#account-status').textContent = 'Владелец сайта ещё не подключил вход Google. Для подключения нужен OAuth Client ID.'; return; }
+    try { await loadIdentity(); $('#google-login').disabled = false; $('#google-write').disabled = false; $('#account-login').disabled = false; $('#account-switch').disabled = false; }
+    catch (e) { $('#settings-status').textContent = e.message; $('#account-status').textContent = e.message; }
   }
   function settings() {
     $('#api-key').value = api.config.apiKey || ''; $('#client-id').value = api.config.clientId || '';
     $('#settings-status').textContent = ''; authState(); $('#settings-dialog').showModal(); prepareLogin();
   }
   $('#google-settings').onclick = settings;
-  $('#about-button').onclick = settings;
+  function account() { authState(); $('#account-status').textContent = ''; $('#account-dialog').showModal(); prepareLogin(); }
+  $('#about-button').onclick = account; $('#account-entry').onclick = account;
+  $('#account-settings').onclick = settings;
+  $('#account-login').onclick = () => login(false);
+  $('#account-switch').onclick = () => login(false, true);
+  $('#account-logout').onclick = () => { authAttempt++; loginPending = false; api.clearSession(); $('#account-status').textContent = 'Вы вышли из оболочки. Доступ приложения можно отозвать в настройках аккаунта Google.'; };
+  $('#account-subscriptions').onclick = () => { $('#account-dialog').close(); subscriptions(); };
+  $('#account-playlists').onclick = () => { $('#account-dialog').close(); playlists(); };
   $('#settings-form').onsubmit = event => {
     event.preventDefault();
     authAttempt++; loginPending = false;
     try { api.configure($('#api-key').value, $('#client-id').value); $('#settings-status').textContent = 'Настройки сохранены в этом браузере. Для личных данных нажмите «Войти через Google».'; prepareLogin(); }
     catch (e) { $('#settings-status').textContent = e.message; }
   };
-  function login(write) {
+  function login(write, switchAccount = false) {
     if (loginPending) return;
     if (!api.config.clientId || !globalThis.google?.accounts?.oauth2) { $('#settings-status').textContent = 'Сначала сохраните Client ID и дождитесь загрузки Google.'; return; }
     loginPending = true;
+    if (switchAccount) api.clearSession();
     const attempt = ++authAttempt;
     const scope = write ? WRITE_SCOPE : READ_SCOPE;
-    const done = message => { if (attempt !== authAttempt) return; loginPending = false; $('#settings-status').textContent = message; };
+    const done = message => { if (attempt !== authAttempt) return; loginPending = false; $('#settings-status').textContent = message; $('#account-status').textContent = message; };
     try {
       const client = google.accounts.oauth2.initTokenClient({client_id:api.config.clientId, scope, include_granted_scopes:true,
         callback: response => { if (attempt !== authAttempt) return; try { api.acceptToken(response, scope); done(write ? 'Разрешение на изменения получено. Изменения выполняются только по нажатию соответствующих кнопок.' : 'Вход выполнен. Доступны подписки и плейлисты.'); } catch (e) { done(e.message); } },
         error_callback: () => done('Вход не завершён. Разрешите всплывающее окно Google и попробуйте снова.')
-      }); client.requestAccessToken({prompt:'consent'});
+      }); client.requestAccessToken({prompt:switchAccount ? 'select_account consent' : 'consent'});
     } catch { done('Не удалось открыть вход Google. Проверьте Client ID и origin сайта.'); }
   }
   $('#google-login').onclick = () => login(false); $('#google-write').onclick = () => login(true);

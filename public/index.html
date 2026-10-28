@@ -15,7 +15,7 @@
     <a href="./" class="brand" aria-label="YTP, главная"><img src="./icon.svg" alt="" width="31" height="31"><strong>YTP<span>web</span></strong></a>
     <form id="search-form" role="search"><label class="sr-only" for="search">Поиск в вашей видеотеке</label><input id="search" type="search" placeholder="Поиск в видеотеке" autocomplete="off"><button aria-label="Найти" type="submit" class="search-button">⌕</button></form>
     <button class="add-button" id="add-top"><span>＋</span><span class="desktop-label">Добавить видео</span></button>
-    <button class="avatar" id="about-button" aria-label="Подключение Google">Я</button>
+    <button class="avatar" id="about-button" aria-label="Мой аккаунт YouTube">Я</button>
   </header>
   <nav class="navigation" aria-label="Разделы">
     <button data-tab="home" aria-current="page"><span class="nav-icon">⌂</span><span>Главная</span></button>
@@ -25,7 +25,7 @@
     <div class="sidebar-note">Официальный плеер.<br>Ваша личная подборка.<br><button id="about-sidebar">Как это работает</button></div>
   </nav>
   <main id="main">
-    <div class="integration-bar"><button class="chip" id="open-cloud-search">Поиск на YouTube</button><button class="chip" id="google-settings">Подключить Google / API</button></div>
+    <div class="integration-bar"><button class="chip" id="open-cloud-search">Поиск на YouTube</button><button class="chip" id="account-entry">Войти через Google</button></div>
     <div class="filters"><button class="chip active" data-tab="home">Все видео</button><button class="chip" data-tab="saved">Сохранённые</button><button class="chip" data-tab="history">Недавно открытые</button><a class="chip external" href="https://www.youtube.com" target="_blank" rel="noopener">Открыть YouTube ↗</a></div>
     <div class="section-heading"><div><p class="eyebrow">ВАШЕ ПРОСТРАНСТВО</p><h1 id="heading">Главная</h1></div><span id="video-count"></span></div>
     <section id="empty" class="empty-state">
@@ -38,7 +38,7 @@
     <div id="no-results" hidden><h2>Здесь пока нет видео</h2><p>Добавьте видео или измените поисковый запрос.</p></div>
     <section id="grid" class="video-grid" aria-label="Видеотека"></section>
     <a id="youtube-search" class="youtube-search" target="_blank" rel="noopener" hidden>Искать на YouTube ↗</a>
-    <footer>YTP — независимый интерфейс с плеером YouTube. <button id="limitations">Возможности и ограничения</button></footer>
+    <footer>YTP — независимый интерфейс с плеером YouTube. <button id="limitations">Возможности и ограничения</button> · <button id="google-settings">Настройки подключения</button></footer>
   </main>
   <section id="watch" class="watch" hidden aria-label="Просмотр видео">
     <div class="watch-toolbar"><button id="minimize" aria-label="Свернуть плеер">⌄</button><span>Сейчас играет</span><button id="close-player" aria-label="Закрыть плеер">✕</button></div>
@@ -50,6 +50,12 @@
   <button id="mini-open" hidden><span>Вернуться к просмотру</span><span>↗</span></button>
   <dialog id="add-dialog"><form id="add-form"><div class="dialog-heading"><h2>Добавить видео</h2><button type="button" data-close aria-label="Закрыть">✕</button></div><label for="video-url">Ссылка YouTube</label><input id="video-url" type="text" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" required autocomplete="off"><label for="video-title">Название <span>необязательно</span></label><input id="video-title" maxlength="160" placeholder="Как назовём видео?"><p id="add-error" class="error" role="alert"></p><p class="dialog-note">Поддерживаются обычные видео, Shorts и трансляции. Доступность просмотра определяет YouTube.</p><button type="submit" class="primary">Добавить в видеотеку</button></form></dialog>
   <dialog id="about-dialog"><div class="dialog-heading"><h2>О YTP</h2><button data-close aria-label="Закрыть">✕</button></div><p>Независимый сайт с официальным плеером и API YouTube.</p><h3>Что сохраняется</h3><p>Видеотека, избранное, история открытия и публичные параметры подключения хранятся в этом браузере. Очистка данных сайта удалит их. Личные подписки и плейлисты загружаются из Google после входа. Токен сессии хранится только в памяти вкладки.</p><h3>Воспроизведение</h3><p>Реклама не блокируется, спонсорские фрагменты не пропускаются. Premium, офлайн-загрузка, фоновое воспроизведение и PiP не предоставляются этим сайтом. Возможности официального плеера зависят от устройства и YouTube.</p><p>При использовании поиска, входа, обложек и плеера браузер обращается к сервисам Google. Запросы Data API используют квоту подключённого проекта.</p></dialog>
+  <dialog id="account-dialog"><div class="dialog-heading"><h2>Ваш YouTube</h2><button data-close aria-label="Закрыть">✕</button></div>
+    <p id="account-channel">Войдите, чтобы открыть свои подписки и плейлисты.</p><p>Вход и выбор аккаунта происходят в официальном окне Google. Пароль вводится только у Google.</p>
+    <button id="account-login" class="primary" disabled>Войти через Google</button>
+    <div id="account-connected" hidden><div class="cloud-controls"><button id="account-subscriptions" class="chip">Мои подписки</button><button id="account-playlists" class="chip">Мои плейлисты</button><button id="account-switch" class="chip" disabled>Сменить аккаунт</button><button id="account-logout" class="chip">Выйти из оболочки</button></div><div id="account-channels"></div><p>Выход здесь не завершает сеанс на youtube.com. Полная история и рекомендации YouTube не доступны этой оболочке через публичный API.</p></div>
+    <p id="account-status" role="status"></p><button id="account-settings" class="text-button">Настройки подключения сайта</button>
+  </dialog>
   <dialog id="settings-dialog"><div class="dialog-heading"><h2>Подключение Google</h2><button data-close aria-label="Закрыть">✕</button></div>
     <p>Включите YouTube Data API v3 в Google Cloud. Добавьте домен сайта в ограничения API key и JavaScript origins OAuth-клиента типа Web application.</p>
     <form id="settings-form"><label for="api-key">YouTube API key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ с ограничением по домену"><label for="client-id">OAuth Client ID</label><input id="client-id" autocomplete="off" spellcheck="false" placeholder="…apps.googleusercontent.com"><p>Эти параметры сохраняются в этом браузере. Не вставляйте Client Secret или access token.</p><button class="primary" type="submit">Сохранить настройки</button></form>
