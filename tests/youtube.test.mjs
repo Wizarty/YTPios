@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { YouTube, READ_SCOPE, WRITE_SCOPE } from '../public/youtube.js';
+import { YouTube, READ_SCOPE, WRITE_SCOPE, oauthError } from '../public/youtube.js';
+test('OAuth failures distinguish blocked popups, test-user access and wrong origins', () => {
+  assert.match(oauthError('popup_failed_to_open'), /заблокировал окно/);
+  assert.match(oauthError('access_denied'), /Test users/);
+  assert.match(oauthError('origin_mismatch'), /https:\/\/wizarty.github.io/);
+  assert.match(oauthError('disallowed_useragent'), /непосредственно в Safari/);
+  assert.equal(oauthError('<untrusted provider message>').includes('<untrusted'),false);
+});
 const storage = () => { const data = new Map(); return {data, getItem:key => data.get(key), setItem:(key,value) => data.set(key,value)}; };
 const json = (data, status=200) => new Response(JSON.stringify(data), {status,headers:{'Content-Type':'application/json'}});
 test('published Client ID works on first visit and with old empty settings', () => {

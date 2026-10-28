@@ -1,4 +1,4 @@
-import { YouTube, loadIdentity, READ_SCOPE, WRITE_SCOPE } from './youtube.js';
+import { YouTube, loadIdentity, READ_SCOPE, WRITE_SCOPE, oauthError } from './youtube.js';
 const $ = s => document.querySelector(s);
 const el = (tag, text, cls) => { const n = document.createElement(tag); if (text) n.textContent = text; if (cls) n.className = cls; return n; };
 const button = (text, fn) => { const b = el('button', text, 'chip'); b.type = 'button'; b.onclick = fn; return b; };
@@ -77,7 +77,7 @@ export function initIntegration({importVideo, currentVideo}) {
     try {
       const client = google.accounts.oauth2.initTokenClient({client_id:api.config.clientId, scope, include_granted_scopes:true,
         callback: response => { if (attempt !== authAttempt) return; try { api.acceptToken(response, scope); done(write ? 'Разрешение на изменения получено. Изменения выполняются только по нажатию соответствующих кнопок.' : 'Вход выполнен. Доступны подписки и плейлисты.'); } catch (e) { done(e.message); } },
-        error_callback: () => done('Вход не завершён. Разрешите всплывающее окно Google и попробуйте снова.')
+        error_callback: error => done(oauthError(error?.type))
       }); client.requestAccessToken({prompt:switchAccount ? 'select_account consent' : 'consent'});
     } catch { done('Не удалось открыть вход Google. Проверьте Client ID и origin сайта.'); }
   }

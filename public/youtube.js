@@ -1,5 +1,18 @@
 export const READ_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 export const WRITE_SCOPE = 'https://www.googleapis.com/auth/youtube.force-ssl';
+export function oauthError(code) {
+  const messages = {
+    popup_failed_to_open:'Safari или другой браузер заблокировал окно Google. Разрешите всплывающее окно для входа и нажмите кнопку снова. Открывайте сайт непосредственно в Safari, не внутри другого приложения.',
+    popup_closed:'Окно Google закрыто до завершения входа. Нажмите «Войти через Google» снова.',
+    access_denied:'Google отказал в доступе. Если приложение в режиме Testing, добавьте выбранный на телефоне аккаунт в Google Cloud → Audience → Test users.',
+    disallowed_useragent:'Google не разрешает вход из встроенного браузера. Откройте сайт непосредственно в Safari.',
+    origin_mismatch:'Адрес сайта не разрешён в OAuth-клиенте. Для GitHub Pages добавьте https://wizarty.github.io в Authorized JavaScript origins.',
+    invalid_client:'Google не распознал OAuth-клиент. Проверьте Client ID типа Web application.',
+    unauthorized_client:'Google не разрешил вход этому OAuth-клиенту. Проверьте его тип и настройки в Google Cloud.',
+    admin_policy_enforced:'Вход запрещён политикой администратора Google Workspace. Используйте разрешённый аккаунт или обратитесь к администратору.'
+  };
+  return messages[code] || 'Google не завершил вход. Проверьте сообщение в окне Google и настройки доступа приложения.';
+}
 const settingsKey = 'ytpios.google.v1';
 const deployedClientId = typeof __GOOGLE_CLIENT_ID__ === 'string' ? __GOOGLE_CLIENT_ID__ : '';
 const endpoints = new Set(['search', 'videos', 'channels', 'subscriptions', 'playlists', 'playlistItems', 'commentThreads', 'comments', 'videos/rate']);
@@ -22,6 +35,7 @@ export class YouTube extends EventTarget {
   get signedIn() { return !!this.session && this.session.expires > Date.now(); }
   clearSession() { clearTimeout(this.expiryTimer); this.session = null; this.dispatchEvent(new Event('change')); }
   acceptToken(response, requestedScope) {
+    if (response.error) throw new Error(oauthError(response.error));
     if (response.error || !response.access_token || !response.scope?.split(' ').includes(requestedScope)) throw new Error('Google не предоставил необходимые разрешения.');
     const seconds = Number(response.expires_in);
     if (!Number.isFinite(seconds) || seconds <= 0) throw new Error('Google вернул некорректный срок сессии.');
