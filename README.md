@@ -4,7 +4,15 @@
 
 **Требование полной интеграции сохраняется:** текущий интерфейс — прототип. См. [обязательные требования](REQUIREMENTS.md) и [список API и ручных настроек Google](docs/GOOGLE_INTEGRATION.md).
 
-## Запуск
+## GitHub Pages
+
+В репозитории настроен `.github/workflows/pages.yml`: push в `main` запускает установку через `npm ci`, тесты, сборку и публикацию каталога `dist`. Версия Node задаётся в `.nvmrc` (22); esbuild и Playwright зафиксированы в `package-lock.json`. Chromium и его системные зависимости устанавливаются в workflow перед браузерными тестами. Приложению на Pages Node-сервер не требуется — публикуется статический HTML.
+
+Один раз выберите **Settings → Pages → Source: GitHub Actions**. Обычный `GITHUB_TOKEN` workflow не используется для административного включения Pages. Затем запустите **Actions → Publish GitHub Pages → Run workflow**. Ожидаемый адрес — `https://wizarty.github.io/YTPios/`; успешность публикации подтверждается результатом deploy, а не самим наличием workflow.
+
+Для официального входа добавьте repository variable `GOOGLE_CLIENT_ID` и настройте Google Cloud по [инструкции](docs/GOOGLE_INTEGRATION.md). Секреты и токены в сборку не передаются. До добавления Client ID локальная видеотека доступна, а вход Google не активирован.
+
+## Локальный запуск
 
 Нужен Node.js 22 или новее. Для работы приложения внешние npm-зависимости не нужны.
 
