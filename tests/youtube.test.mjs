@@ -3,6 +3,17 @@ import assert from 'node:assert/strict';
 import { YouTube, READ_SCOPE, WRITE_SCOPE } from '../public/youtube.js';
 const storage = () => { const data = new Map(); return {data, getItem:key => data.get(key), setItem:(key,value) => data.set(key,value)}; };
 const json = (data, status=200) => new Response(JSON.stringify(data), {status,headers:{'Content-Type':'application/json'}});
+test('published Client ID works on first visit and with old empty settings', () => {
+  const saved = storage();
+  const defaultClientId = 'published-client.apps.googleusercontent.com';
+  assert.equal(new YouTube({storage:saved, defaultClientId}).config.clientId, defaultClientId);
+  saved.setItem('ytpios.google.v1', JSON.stringify({apiKey:'',clientId:''}));
+  const api = new YouTube({storage:saved, defaultClientId});
+  assert.equal(api.config.clientId,defaultClientId);
+  api.configure('', 'custom-client.apps.googleusercontent.com');
+  assert.equal(new YouTube({storage:saved, defaultClientId}).config.clientId,'custom-client.apps.googleusercontent.com');
+  api.configure('', ''); assert.equal(api.config.clientId,defaultClientId);
+});
 test('public search encodes queries and pagination, and persists only public configuration', async () => {
   const saved = storage(); let request;
   const api = new YouTube({storage:saved, fetcher:async (url, options) => { request = {url:new URL(url), options}; return json({items:[],nextPageToken:'next'}); }});

@@ -1,17 +1,19 @@
 export const READ_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 export const WRITE_SCOPE = 'https://www.googleapis.com/auth/youtube.force-ssl';
 const settingsKey = 'ytpios.google.v1';
+const deployedClientId = typeof __GOOGLE_CLIENT_ID__ === 'string' ? __GOOGLE_CLIENT_ID__ : '';
 const endpoints = new Set(['search', 'videos', 'channels', 'subscriptions', 'playlists', 'playlistItems', 'commentThreads', 'comments', 'videos/rate']);
 export class YouTube extends EventTarget {
-  constructor({fetcher = (...args) => fetch(...args), storage} = {}) {
+  constructor({fetcher = (...args) => fetch(...args), storage, defaultClientId = deployedClientId} = {}) {
     super();
     if (!storage) { try { storage = globalThis.localStorage; } catch {} }
     storage ||= {getItem:() => null, setItem:() => { throw new Error('Браузер запретил сохранение настроек. Разрешите хранение данных для сайта.'); }};
-    this.fetcher = fetcher; this.storage = storage; this.config = {}; this.session = null;
-    try { const data = JSON.parse(storage.getItem(settingsKey)); if (data && typeof data === 'object') this.config = {apiKey:typeof data.apiKey === 'string' ? data.apiKey : '', clientId:typeof data.clientId === 'string' ? data.clientId : ''}; } catch {}
+    this.defaultClientId = defaultClientId;
+    this.fetcher = fetcher; this.storage = storage; this.config = {apiKey:'', clientId:defaultClientId}; this.session = null;
+    try { const data = JSON.parse(storage.getItem(settingsKey)); if (data && typeof data === 'object') this.config = {apiKey:typeof data.apiKey === 'string' ? data.apiKey : '', clientId:typeof data.clientId === 'string' && data.clientId ? data.clientId : defaultClientId}; } catch {}
   }
   configure(apiKey, clientId) {
-    apiKey = apiKey.trim(); clientId = clientId.trim();
+    apiKey = apiKey.trim(); clientId = clientId.trim() || this.defaultClientId;
     if (apiKey && !/^[A-Za-z0-9_-]{20,100}$/.test(apiKey)) throw new Error('Проверьте API key. Не вставляйте Client Secret или токен.');
     if (clientId && !/^[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(clientId)) throw new Error('Нужен Client ID типа Web application, оканчивающийся на .apps.googleusercontent.com.');
     this.storage.setItem(settingsKey, JSON.stringify({apiKey, clientId}));

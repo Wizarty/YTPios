@@ -2,6 +2,24 @@
 
 ## Что должен настроить владелец
 
+### Готовые значения для GitHub Pages
+
+Для адреса `https://wizarty.github.io/YTPios/`:
+
+- Включите **YouTube Data API v3** в Google Cloud.
+- В Google Auth Platform настройте приложение для внешних пользователей (**External**), а в режиме **Testing** добавьте свой Google-аккаунт в Test users.
+- Создайте OAuth Client типа **Web application**.
+- **Authorized JavaScript origins:** `https://wizarty.github.io` — без `/YTPios/` и завершающего слеша.
+- **Authorized redirect URIs:** для реализованного popup token flow оставьте пустым. Обработчика `/callback` на GitHub Pages нет.
+- В Data Access добавьте `https://www.googleapis.com/auth/youtube.readonly`; для кнопки изменения аккаунта также `https://www.googleapis.com/auth/youtube.force-ssl`. Для широкой публикации Google может потребовать проверку приложения.
+- Откройте GitHub → репозиторий → **Settings → Secrets and variables → Actions → Variables → New repository variable**. Имя: `GOOGLE_CLIENT_ID`. Значение: созданный публичный Client ID, оканчивающийся на `.apps.googleusercontent.com`.
+- Запустите **Actions → Publish GitHub Pages → Run workflow**. Сборка подставит публичный Client ID для всех посетителей. Его не нужно будет вводить на каждом устройстве; пользователю останется выполнить вход и дать согласие Google.
+- Проверяйте опубликованный HTTPS-сайт напрямую в Safari, а не в просмотрщике вложений. Нажмите **«Я» → «Войти через Google»** и разрешите всплывающее окно, если Safari его блокирует.
+
+`GOOGLE_CLIENT_ID` — публичный идентификатор приложения, не секрет. Не используйте здесь Client Secret или access token. API key для самого OAuth-входа не нужен. Поиск после входа использует OAuth; для поиска без входа можно отдельно ввести ограниченный ключ в настройках сайта. Локально заданный непустой Client ID имеет приоритет над опубликованным; очистка поля возвращает опубликованное значение. Режим `npm start` использует ввод настроек в браузере; переменная применяется к `npm run build`.
+
+Пока Client ID не создан и переменная репозитория не заполнена, публикация кода не активирует реальную авторизацию.
+
 Код IFrame Player API, Data API и входа Google реализован. Проверки выполнены с контролируемыми ответами; живой проект Google и домен ещё не подключены. Чтобы включить интеграцию со своим проектом, выполните настройки ниже и введите публичные параметры в приложении.
 
 1. Выбрать постоянный HTTPS-адрес сайта. Он нужен для ограничений ключа, разрешённых JavaScript origins OAuth и проверки на iPhone. Домены Google для API не заменяют домен самого сайта.
