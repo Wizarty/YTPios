@@ -32,12 +32,19 @@ export function initIntegration({importVideo, currentVideo}) {
   }
   api.addEventListener('change', updateProfile);
   api.addEventListener('change', () => { authState(); view++; generation++; $('#cloud-results').replaceChildren(); $('#cloud-actions').replaceChildren(); nextPage = null; $('#cloud-more').hidden = true; status('Сессия изменилась. Выберите раздел повторно.'); });
+  const missingClient = 'Вход Google не настроен: отсутствует OAuth Client ID. Откройте «Настройки подключения сайта» и укажите Client ID. При публикации из ветки main переменная GitHub Actions не применяется — нужен ввод здесь или публикация через Actions.';
+  function loginStatus(message) { $('#settings-status').textContent = message; $('#account-status').textContent = message; }
+  function loginBusy(busy) {
+    for (const id of ['google-login', 'google-write', 'account-login', 'account-switch']) {
+      const b = $(`#${id}`); b.disabled = busy; b.setAttribute('aria-busy', String(busy));
+    }
+  }
   async function prepareLogin() {
-    $('#google-login').disabled = true; $('#google-write').disabled = true;
-    $('#account-login').disabled = true; $('#account-switch').disabled = true;
-    if (!api.config.clientId) { $('#account-status').textContent = 'Владелец сайта ещё не подключил вход Google. Для подключения нужен OAuth Client ID.'; return; }
-    try { await loadIdentity(); $('#google-login').disabled = false; $('#google-write').disabled = false; $('#account-login').disabled = false; $('#account-switch').disabled = false; }
-    catch (e) { $('#settings-status').textContent = e.message; $('#account-status').textContent = e.message; }
+    if (!api.config.clientId) { loginBusy(false); loginStatus(missingClient); return; }
+    loginBusy(true); loginStatus('Загружаем официальный вход Google…');
+    try { await loadIdentity(); loginStatus('Вход Google готов. Нажмите «Войти через Google».'); }
+    catch (e) { loginStatus(`${e.message} Нажмите кнопку входа, чтобы повторить загрузку.`); }
+    finally { loginBusy(false); }
   }
   function settings() {
     $('#api-key').value = api.config.apiKey || ''; $('#client-id').value = api.config.clientId || '';
@@ -60,7 +67,8 @@ export function initIntegration({importVideo, currentVideo}) {
   };
   function login(write, switchAccount = false) {
     if (loginPending) return;
-    if (!api.config.clientId || !globalThis.google?.accounts?.oauth2) { $('#settings-status').textContent = 'Сначала сохраните Client ID и дождитесь загрузки Google.'; return; }
+    if (!api.config.clientId) { loginStatus(missingClient); return; }
+    if (!globalThis.google?.accounts?.oauth2) { prepareLogin(); return; }
     loginPending = true;
     if (switchAccount) api.clearSession();
     const attempt = ++authAttempt;

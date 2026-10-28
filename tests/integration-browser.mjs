@@ -34,6 +34,12 @@ try {
     await route.fulfill({contentType:'application/json',headers:{'Access-Control-Allow-Origin':base},body:JSON.stringify(data)});
   });
   await page.goto(base);
+  await page.locator('#account-entry').click();
+  await page.locator('#account-login').click();
+  assert.match(await page.locator('#account-status').textContent(), /отсутствует OAuth Client ID/);
+  assert.equal(await page.locator('#account-login').isEnabled(),true);
+  assert.notEqual(await page.locator('#account-login').evaluate(el => getComputedStyle(el).cursor),'wait');
+  await page.locator('#account-dialog [data-close]').click();
   await page.locator('#google-settings').click();
   await page.locator('#api-key').fill('public_test_api_key_123456789');
   await page.locator('#client-id').fill('test-client.apps.googleusercontent.com');
@@ -88,5 +94,13 @@ try {
   assert.equal(await page.locator('#account-connected').isVisible(),false);
   assert.equal(await page.evaluate(() => Object.values(localStorage).some(v => v.includes('mock-second-token'))),false);
   assert.deepEqual(errors,[]);
+  const failure = await browser.newPage();
+  await failure.addInitScript(() => localStorage.setItem('ytpios.google.v1',JSON.stringify({clientId:'test-client.apps.googleusercontent.com'})));
+  await failure.route('https://accounts.google.com/gsi/client',route => route.abort());
+  await failure.goto(base);
+  await failure.locator('#account-entry').click();
+  await failure.waitForFunction(() => document.getElementById('account-status').textContent.includes('Не удалось загрузить'));
+  assert.equal(await failure.locator('#account-login').isEnabled(),true);
+  assert.equal(await failure.locator('#account-login').getAttribute('aria-busy'),'false');
   console.log('PASS mocked Google integration: configuration, OAuth, pagination, subscriptions, playlists, write-scope gating, ratings, comments, logout, memory-only tokens');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }
