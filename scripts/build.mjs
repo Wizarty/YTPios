@@ -1,9 +1,10 @@
 import { build } from 'esbuild';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { GOOGLE_CLIENT_ID } from '../public/config.js';
 
 const root = new URL('../', import.meta.url);
 // Public OAuth application identifier only. Never pass client secrets or tokens.
-const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim() || GOOGLE_CLIENT_ID;
 if (clientId && !/^[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(clientId)) {
   throw new Error('GOOGLE_CLIENT_ID must be a public Web application Client ID ending in .apps.googleusercontent.com');
 }

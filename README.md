@@ -6,13 +6,13 @@
 
 ## GitHub Pages
 
-Если Pages настроен на **Deploy from a branch → main → / (root)**, корневой `index.html` перенаправляет на `./public/`, где приложение работает без сборки. `.nojekyll` отключает обработку Jekyll. Это исправляет отображение README вместо интерфейса. В этом режиме переменная GitHub Actions `GOOGLE_CLIENT_ID` не подставляется: Client ID вводится через настройки приложения. Для общего Client ID и сборки в один файл используйте режим **GitHub Actions**, описанный ниже.
+Если Pages настроен на **Deploy from a branch → main → / (root)**, корневой `index.html` перенаправляет на `./public/`, где приложение работает без сборки. `.nojekyll` отключает обработку Jekyll. Публичный Client ID проекта уже задан в `public/config.js`, поэтому ручной ввод на каждом устройстве не нужен. Сборка Actions использует тот же Client ID; переменная `GOOGLE_CLIENT_ID` позволяет его переопределить. Client Secret не используется.
 
 В репозитории настроен `.github/workflows/pages.yml`: push в `main` запускает установку через `npm ci`, тесты, сборку и публикацию каталога `dist`. Версия Node задаётся в `.nvmrc` (22); esbuild и Playwright зафиксированы в `package-lock.json`. Chromium и его системные зависимости устанавливаются в workflow перед браузерными тестами. Приложению на Pages Node-сервер не требуется — публикуется статический HTML.
 
 Один раз выберите **Settings → Pages → Source: GitHub Actions**. Обычный `GITHUB_TOKEN` workflow не используется для административного включения Pages. Затем запустите **Actions → Publish GitHub Pages → Run workflow**. Ожидаемый адрес — `https://wizarty.github.io/YTPios/`; успешность публикации подтверждается результатом deploy, а не самим наличием workflow.
 
-Для официального входа добавьте repository variable `GOOGLE_CLIENT_ID` и настройте Google Cloud по [инструкции](docs/GOOGLE_INTEGRATION.md). Секреты и токены в сборку не передаются. До добавления Client ID локальная видеотека доступна, а вход Google не активирован.
+Для официального входа настройте разрешённый origin и Test users в Google Cloud по [инструкции](docs/GOOGLE_INTEGRATION.md). Публичный Client ID уже подключён. Секреты и токены в сборку не передаются. Проверка входа в реальный аккаунт выполняется отдельно от автоматических тестов с подменой Google.
 
 ## Локальный запуск
 

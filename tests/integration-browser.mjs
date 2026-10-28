@@ -11,7 +11,7 @@ try {
   await page.route('https://i.ytimg.com/**', route => route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));
   await page.route('https://accounts.google.com/gsi/client', route => route.fulfill({contentType:'text/javascript',body:`
     window.google={accounts:{oauth2:{
-      initTokenClient: options => ({requestAccessToken: request => { window.lastOAuthPrompt=request.prompt; const token=request.prompt.includes('select_account')?'mock-second-token':'mock-memory-token'; setTimeout(() => options.callback({access_token:token,expires_in:3600,scope:options.scope}),0); }}),
+      initTokenClient: options => ({requestAccessToken: request => { window.lastOAuthClient=options.client_id; window.lastOAuthPrompt=request.prompt; const token=request.prompt.includes('select_account')?'mock-second-token':'mock-memory-token'; setTimeout(() => options.callback({access_token:token,expires_in:3600,scope:options.scope}),0); }}),
       revoke: (token,callback) => callback({successful:true})
     }}};
   `}));
@@ -36,9 +36,10 @@ try {
   await page.goto(base);
   await page.locator('#account-entry').click();
   await page.locator('#account-login').click();
-  assert.match(await page.locator('#account-status').textContent(), /отсутствует OAuth Client ID/);
-  assert.equal(await page.locator('#account-login').isEnabled(),true);
-  assert.notEqual(await page.locator('#account-login').evaluate(el => getComputedStyle(el).cursor),'wait');
+  await page.locator('#account-channels').getByRole('link',{name:'First channel'}).waitFor();
+  assert.equal(await page.evaluate(() => window.lastOAuthClient),'1098826989059-o21es16ka0lsmbqtba3d3fnjcn6hs3df.apps.googleusercontent.com');
+  assert.equal(await page.evaluate(() => localStorage.getItem('ytpios.google.v1')),null);
+  await page.locator('#account-logout').click();
   await page.locator('#account-dialog [data-close]').click();
   await page.locator('#google-settings').click();
   await page.locator('#api-key').fill('public_test_api_key_123456789');

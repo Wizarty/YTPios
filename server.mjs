@@ -6,7 +6,7 @@ const root = new URL('./public/', import.meta.url);
 const files = new Map([
   ['/', 'index.html'], ['/index.html', 'index.html'], ['/app.js', 'app.js'],
   ['/core.js', 'core.js'], ['/styles.css', 'styles.css'], ['/icon.svg', 'icon.svg'],
-  ['/youtube.js', 'youtube.js'], ['/integration.js', 'integration.js']
+  ['/youtube.js', 'youtube.js'], ['/integration.js', 'integration.js'], ['/config.js', 'config.js']
 ]);
 const types = { html: 'text/html; charset=utf-8', js: 'text/javascript; charset=utf-8', css: 'text/css; charset=utf-8', svg: 'image/svg+xml' };
 export const server = http.createServer(async (req, res) => {

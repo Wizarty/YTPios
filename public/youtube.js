@@ -1,3 +1,4 @@
+import { GOOGLE_CLIENT_ID } from './config.js';
 export const READ_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 export const WRITE_SCOPE = 'https://www.googleapis.com/auth/youtube.force-ssl';
 export function oauthError(code) {
@@ -14,7 +15,7 @@ export function oauthError(code) {
   return messages[code] || 'Google не завершил вход. Проверьте сообщение в окне Google и настройки доступа приложения.';
 }
 const settingsKey = 'ytpios.google.v1';
-const deployedClientId = typeof __GOOGLE_CLIENT_ID__ === 'string' ? __GOOGLE_CLIENT_ID__ : '';
+const deployedClientId = typeof __GOOGLE_CLIENT_ID__ === 'string' && __GOOGLE_CLIENT_ID__ ? __GOOGLE_CLIENT_ID__ : GOOGLE_CLIENT_ID;
 const endpoints = new Set(['search', 'videos', 'channels', 'subscriptions', 'playlists', 'playlistItems', 'commentThreads', 'comments', 'videos/rate']);
 export class YouTube extends EventTarget {
   constructor({fetcher = (...args) => fetch(...args), storage, defaultClientId = deployedClientId} = {}) {
