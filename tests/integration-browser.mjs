@@ -1,0 +1,79 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import { server } from '../server.mjs';
+await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));
+const base = `http://127.0.0.1:${server.address().port}`;
+let browser;
+try {
+  browser = await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',args:['--no-sandbox']});
+  const page = await browser.newPage({viewport:{width:390,height:844}});
+  const errors=[], writes=[]; page.on('pageerror',e => errors.push(e.message));
+  await page.route('https://i.ytimg.com/**', route => route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));
+  await page.route('https://accounts.google.com/gsi/client', route => route.fulfill({contentType:'text/javascript',body:`
+    window.google={accounts:{oauth2:{
+      initTokenClient: options => ({requestAccessToken: () => setTimeout(() => options.callback({access_token:'mock-memory-token',expires_in:3600,scope:options.scope}),0)}),
+      revoke: (token,callback) => callback({successful:true})
+    }}};
+  `}));
+  await page.route('https://www.youtube.com/iframe_api',route => route.fulfill({contentType:'text/javascript',body:`
+    window.YT={Player:class{constructor(id,options){this.element=document.getElementById(id);setTimeout(()=>options.events.onReady({target:this}),0)}loadVideoById(){}destroy(){this.element.remove()}}};window.onYouTubeIframeAPIReady();
+  `}));
+  const item = {id:{videoId:'YE7VzlLtp-4'},snippet:{title:'Remote video',channelTitle:'Test channel'}};
+  await page.route('https://www.googleapis.com/youtube/v3/**', async route => {
+    const req=route.request(), url=new URL(req.url()), endpoint=url.pathname.split('/v3/')[1];
+    if (req.method() === 'OPTIONS') return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':base,'Access-Control-Allow-Methods':'GET, POST, DELETE','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
+    if (req.method() !== 'GET') writes.push({endpoint,body:req.postDataJSON(),headers:req.headers()});
+    let data={items:[]};
+    if (endpoint==='search') data=url.searchParams.has('pageToken')?{items:[{...item,id:{videoId:'eRsGyueVLvQ'},snippet:{title:'Second video'}}]}:{items:[item],nextPageToken:'second'};
+    if (endpoint==='subscriptions') data={items:[{id:'subscription-id',snippet:{title:'Test channel',resourceId:{channelId:'channel-id'}}}]};
+    if (endpoint==='playlists') data=req.method()==='POST'?{id:'new-playlist'}:{items:[{id:'playlist-id',snippet:{title:'My playlist'},contentDetails:{itemCount:1}}]};
+    if (endpoint==='playlistItems') data={items:[{id:'playlist-item',snippet:{title:'Remote video',resourceId:{videoId:'YE7VzlLtp-4'}}}]};
+    if (endpoint==='videos') data={items:[{id:'YE7VzlLtp-4',snippet:{title:'Remote video',channelId:'channel-id',channelTitle:'Test channel'}}]};
+    if (endpoint==='commentThreads') data={items:[{snippet:{topLevelComment:{snippet:{authorDisplayName:'Viewer',textDisplay:'<img src=x onerror=alert(1)>'}}}}]};
+    await route.fulfill({contentType:'application/json',headers:{'Access-Control-Allow-Origin':base},body:JSON.stringify(data)});
+  });
+  await page.goto(base);
+  await page.locator('#google-settings').click();
+  await page.locator('#api-key').fill('public_test_api_key_123456789');
+  await page.locator('#client-id').fill('test-client.apps.googleusercontent.com');
+  await page.locator('#settings-form button').click();
+  await page.locator('#google-login').click();
+  await page.waitForFunction(() => document.getElementById('google-state').textContent.includes('подключён'));
+  assert.equal(await page.evaluate(() => Object.values(localStorage).some(v => v.includes('mock-memory-token'))),false);
+  await page.locator('#settings-dialog [data-close]').click();
+  await page.locator('#open-cloud-search').click();
+  await page.locator('#cloud-query').fill('test video'); await page.locator('#cloud-search-form button').click();
+  await page.locator('.cloud-card').first().waitFor(); assert.equal(await page.locator('.cloud-card').count(),1);
+  await page.locator('#cloud-more').click(); await page.waitForFunction(() => document.querySelectorAll('.cloud-card').length===2);
+  await page.locator('.cloud-card').first().getByRole('button',{name:'Смотреть',exact:true}).click();
+  await page.locator('#video-cloud').click();
+  await page.locator('.cloud-comment').waitFor();
+  assert.equal(await page.locator('.cloud-comment img').count(),0);
+  await page.getByRole('button',{name:'Нравится',exact:true}).click();
+  await page.waitForFunction(() => document.getElementById('cloud-status').textContent.includes('разрешение'));
+  assert.equal(writes.length,0);
+  await page.locator('#cloud-settings').click(); await page.locator('#google-write').click();
+  await page.waitForFunction(() => document.getElementById('settings-status').textContent.includes('Разрешение на изменения получено'));
+  await page.locator('#settings-dialog [data-close]').click(); await page.locator('#cloud-dialog [data-close]').click();
+  await page.locator('#video-cloud').click(); await page.locator('.cloud-comment').waitFor();
+  await page.getByRole('button',{name:'Нравится',exact:true}).click();
+  await page.waitForFunction(() => document.getElementById('cloud-status').textContent.includes('Оценка отправлена'));
+  assert.equal(writes[0].endpoint,'videos/rate'); assert.equal(writes[0].headers.authorization,'Bearer mock-memory-token');
+  await page.getByRole('textbox',{name:'Комментарий',exact:true}).fill('A test comment');
+  await page.getByRole('button',{name:'Опубликовать комментарий',exact:true}).click();
+  await page.waitForFunction(() => document.getElementById('cloud-status').textContent.includes('Комментарий опубликован'));
+  assert.equal(writes[1].body.snippet.topLevelComment.snippet.textOriginal,'A test comment');
+  await page.locator('#cloud-playlists').click(); await page.getByRole('heading',{name:'My playlist',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Добавить текущее видео',exact:true}).click();
+  await page.waitForFunction(() => document.getElementById('cloud-status').textContent.includes('Видео добавлено'));
+  assert.equal(writes[2].body.snippet.playlistId,'playlist-id');
+  await page.locator('#cloud-subscriptions').click(); await page.getByRole('heading',{name:'Test channel',exact:true}).waitFor();
+  await page.locator('#cloud-settings').click(); await page.locator('#google-disconnect').click();
+  assert.match(await page.locator('#google-state').textContent(),/не выполнен/);
+  assert.equal(await page.locator('.cloud-card').count(),0);
+  await page.reload();
+  await page.locator('#google-settings').click(); assert.match(await page.locator('#google-state').textContent(),/не выполнен/);
+  assert.equal(await page.locator('#api-key').inputValue(),'public_test_api_key_123456789');
+  assert.deepEqual(errors,[]);
+  console.log('PASS mocked Google integration: configuration, OAuth, pagination, subscriptions, playlists, write-scope gating, ratings, comments, logout, memory-only tokens');
+} finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }
