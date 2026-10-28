@@ -90,4 +90,16 @@ try {
   assert.deepEqual(unexpectedRequests,[]);
   await preview.screenshot({path:'test-results/standalone-390.png',fullPage:true});
   console.log('PASS standalone preview: CSS, icons and interactions work without separate asset requests at a nested URL');
+  const branchPage = await browser.newPage({viewport:{width:390,height:844}});
+  await branchPage.route(base + '/', async route => route.fulfill({contentType:'text/html',body:await readFile(new URL('../index.html',import.meta.url),'utf8')}));
+  await branchPage.route(base + '/public/**', async route => {
+    const response = await route.fetch({url:route.request().url().replace(base + '/public/',base + '/')});
+    await route.fulfill({response});
+  });
+  await branchPage.goto(base);
+  await branchPage.waitForURL(base + '/public/');
+  assert.equal(await branchPage.locator('.topbar').evaluate(el => getComputedStyle(el).position),'fixed');
+  await branchPage.locator('#add-top').click();
+  assert.equal(await branchPage.locator('#add-dialog').isVisible(),true);
+  console.log('PASS branch publishing: repository root opens styled, interactive application instead of README');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

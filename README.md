@@ -6,6 +6,8 @@
 
 ## GitHub Pages
 
+Если Pages настроен на **Deploy from a branch → main → / (root)**, корневой `index.html` перенаправляет на `./public/`, где приложение работает без сборки. `.nojekyll` отключает обработку Jekyll. Это исправляет отображение README вместо интерфейса. В этом режиме переменная GitHub Actions `GOOGLE_CLIENT_ID` не подставляется: Client ID вводится через настройки приложения. Для общего Client ID и сборки в один файл используйте режим **GitHub Actions**, описанный ниже.
+
 В репозитории настроен `.github/workflows/pages.yml`: push в `main` запускает установку через `npm ci`, тесты, сборку и публикацию каталога `dist`. Версия Node задаётся в `.nvmrc` (22); esbuild и Playwright зафиксированы в `package-lock.json`. Chromium и его системные зависимости устанавливаются в workflow перед браузерными тестами. Приложению на Pages Node-сервер не требуется — публикуется статический HTML.
 
 Один раз выберите **Settings → Pages → Source: GitHub Actions**. Обычный `GITHUB_TOKEN` workflow не используется для административного включения Pages. Затем запустите **Actions → Publish GitHub Pages → Run workflow**. Ожидаемый адрес — `https://wizarty.github.io/YTPios/`; успешность публикации подтверждается результатом deploy, а не самим наличием workflow.
