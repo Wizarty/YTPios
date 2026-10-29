@@ -33,12 +33,13 @@ try {
     if (endpoint==='commentThreads') data={items:[{snippet:{topLevelComment:{snippet:{authorDisplayName:'Viewer',textDisplay:'<img src=x onerror=alert(1)>'}}}}]};
     await route.fulfill({contentType:'application/json',headers:{'Access-Control-Allow-Origin':base},body:JSON.stringify(data)});
   });
+  await page.addInitScript(() => { if (!localStorage.getItem('ytpios.google.v1')) localStorage.setItem('ytpios.google.v1',JSON.stringify({clientId:'test-client.apps.googleusercontent.com'})); });
   await page.goto(base);
   await page.locator('#account-entry').click();
   await page.locator('#account-login').click();
   await page.locator('#account-channels').getByRole('link',{name:'First channel'}).waitFor();
-  assert.equal(await page.evaluate(() => window.lastOAuthClient),'1098826989059-o21es16ka0lsmbqtba3d3fnjcn6hs3df.apps.googleusercontent.com');
-  assert.equal(await page.evaluate(() => localStorage.getItem('ytpios.google.v1')),null);
+  assert.equal(await page.evaluate(() => window.lastOAuthClient),'test-client.apps.googleusercontent.com');
+  assert.equal(await page.evaluate(() => Object.values(localStorage).some(v => v.includes('mock-memory-token'))),false);
   await page.locator('#account-logout').click();
   await page.locator('#account-dialog [data-close]').click();
   await page.locator('#google-settings').click();

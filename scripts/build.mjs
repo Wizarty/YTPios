@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
 import { GOOGLE_CLIENT_ID } from '../public/config.js';
 
 const root = new URL('../', import.meta.url);
@@ -23,4 +23,5 @@ const html = template
   .replace('</body>', () => `<script>${js}</script>\n</body>`);
 await mkdir(new URL('dist/', root), {recursive:true});
 await writeFile(new URL('dist/index.html', root), html);
+for (const file of ['player.html','player.css','player.js','player.webmanifest','player-sw.js','player-icon.png','test-video.mp4']) await copyFile(new URL(`public/${file}`,root),new URL(`dist/${file}`,root));
 console.log('Built dist/index.html: bundled scripts, styles and local icons. YouTube still requires network access.');

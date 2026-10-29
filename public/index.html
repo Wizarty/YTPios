@@ -25,7 +25,7 @@
     <div class="sidebar-note">Официальный плеер.<br>Ваша личная подборка.<br><button id="about-sidebar">Как это работает</button></div>
   </nav>
   <main id="main">
-    <div class="integration-bar"><button class="chip" id="open-cloud-search">Поиск на YouTube</button><button class="chip" id="account-entry">Войти через Google</button></div>
+    <div class="integration-bar"><a class="chip" href="./player.html">Плеер PWA</a><button class="chip" id="open-cloud-search">Поиск на YouTube</button><button class="chip" id="account-entry">Войти через Google</button></div>
     <div class="filters"><button class="chip active" data-tab="home">Все видео</button><button class="chip" data-tab="saved">Сохранённые</button><button class="chip" data-tab="history">Недавно открытые</button><a class="chip external" href="https://www.youtube.com" target="_blank" rel="noopener">Открыть YouTube ↗</a></div>
     <div class="section-heading"><div><p class="eyebrow">ВАШЕ ПРОСТРАНСТВО</p><h1 id="heading">Главная</h1></div><span id="video-count"></span></div>
     <section id="empty" class="empty-state">
@@ -58,7 +58,7 @@
   </dialog>
   <dialog id="settings-dialog"><div class="dialog-heading"><h2>Подключение Google</h2><button data-close aria-label="Закрыть">✕</button></div>
     <p>Включите YouTube Data API v3 в Google Cloud. Добавьте домен сайта в ограничения API key и JavaScript origins OAuth-клиента типа Web application.</p>
-    <form id="settings-form"><label for="api-key">YouTube API key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ с ограничением по домену"><label for="client-id">OAuth Client ID</label><input id="client-id" autocomplete="off" spellcheck="false" placeholder="…apps.googleusercontent.com"><p>Эти параметры сохраняются в этом браузере. Не вставляйте Client Secret или access token.</p><button class="primary" type="submit">Сохранить настройки</button></form>
+    <form id="settings-form"><label for="api-key">YouTube API key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ с ограничением по домену"><label for="client-id">OAuth Client ID</label><input id="client-id" type="password" autocomplete="off" spellcheck="false" placeholder="…apps.googleusercontent.com"><p>Эти параметры сохраняются в этом браузере. Не вставляйте Client Secret или access token.</p><button class="primary" type="submit">Сохранить настройки</button></form>
     <p id="google-state" role="status"></p><div class="cloud-controls"><button class="chip" id="google-login" disabled>Войти через Google</button><button class="chip" id="google-write" disabled>Разрешить изменения</button><button class="chip" id="google-disconnect" hidden>Отключить Google</button></div><p>Чтение: подписки и плейлисты. Изменения: оценки, подписки, плейлисты и публикация комментариев — только по вашему действию.</p><p id="settings-status" role="status"></p>
   </dialog>
   <dialog id="cloud-dialog"><div class="dialog-heading"><h2 id="cloud-title">YouTube</h2><button data-close aria-label="Закрыть">✕</button></div>

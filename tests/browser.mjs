@@ -102,4 +102,20 @@ try {
   await branchPage.locator('#add-top').click();
   assert.equal(await branchPage.locator('#add-dialog').isVisible(),true);
   console.log('PASS branch publishing: repository root opens styled, interactive application instead of README');
+  const playerPage=await browser.newPage({viewport:{width:390,height:844}});
+  await playerPage.goto(base+'/player.html');
+  await playerPage.locator('#play').click();
+  await playerPage.waitForFunction(()=>document.getElementById('media').currentTime>0.3);
+  await playerPage.locator('#play').click();
+  assert.equal(await playerPage.locator('#media').evaluate(v=>v.paused),true);
+  const videoType=await playerPage.locator('#media').evaluate(v=>v.canPlayType('video/mp4'));
+  assert.notEqual(videoType,'');
+  await playerPage.locator('#file').setInputFiles(new URL('../public/test-video.mp4',import.meta.url).pathname);
+  await playerPage.locator('#play').click();
+  await playerPage.waitForFunction(()=>document.getElementById('media').currentTime>0.3);
+  await playerPage.locator('summary').click();
+  const downloadPromise=playerPage.waitForEvent('download');await playerPage.locator('#report').click();const download=await downloadPromise;
+  assert.equal(download.suggestedFilename(),'ytp-playback-report.json');
+  await playerPage.screenshot({path:'test-results/player-mobile.png',fullPage:true});
+  console.log('PASS real HTML5 playback: bundled MP4, local file, pause and report download. iPhone background playback remains unverified.');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }
