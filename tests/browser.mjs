@@ -38,6 +38,7 @@ try {
     await page.getByRole('button',{name:'Сохранить в избранное', exact:true}).click();
     await page.reload();
     assert.equal(await page.locator('.card-actions [aria-pressed=true]').count(),1);
+    if(viewport.width<=600)await page.locator('#mobile-search').click();
     await page.locator('#search').fill('несуществующий запрос');
     assert.equal(await page.locator('.card').count(),0);
     assert.equal(await page.locator('#youtube-search').isVisible(),true);
@@ -79,6 +80,7 @@ try {
   const unexpectedRequests = [];
   await preview.route('**/*', route => {
     if (route.request().url() === base + '/nested/preview.html') return route.fulfill({contentType:'text/html',body:standalone});
+    if(route.request().url()===base+'/nested/app.webmanifest')return route.fulfill({contentType:'application/manifest+json',body:'{}'});
     unexpectedRequests.push(route.request().url()); return route.abort();
   });
   await preview.goto(base + '/nested/preview.html');

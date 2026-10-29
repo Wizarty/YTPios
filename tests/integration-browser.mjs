@@ -35,7 +35,7 @@ try {
   });
   await page.addInitScript(() => { if (!localStorage.getItem('ytpios.google.v1')) localStorage.setItem('ytpios.google.v1',JSON.stringify({clientId:'test-client.apps.googleusercontent.com'})); });
   await page.goto(base);
-  await page.locator('#account-entry').click();
+  await page.locator('#about-button').click();
   await page.locator('#account-login').click();
   await page.locator('#account-channels').getByRole('link',{name:'First channel'}).waitFor();
   assert.equal(await page.evaluate(() => window.lastOAuthClient),'test-client.apps.googleusercontent.com');
@@ -50,7 +50,9 @@ try {
   await page.waitForFunction(() => document.getElementById('google-state').textContent.includes('подключён'));
   assert.equal(await page.evaluate(() => Object.values(localStorage).some(v => v.includes('mock-memory-token'))),false);
   await page.locator('#settings-dialog [data-close]').click();
-  await page.locator('#open-cloud-search').click();
+  await page.locator('#mobile-search').click();
+  await page.locator('#search').fill('test video');
+  await page.locator('#search-form').evaluate(form=>form.requestSubmit());
   await page.locator('#cloud-query').fill('test video'); await page.locator('#cloud-search-form button').click();
   await page.locator('.cloud-card').first().waitFor(); assert.equal(await page.locator('.cloud-card').count(),1);
   await page.locator('#cloud-more').click(); await page.waitForFunction(() => document.querySelectorAll('.cloud-card').length===2);
@@ -84,7 +86,7 @@ try {
   await page.locator('#google-settings').click(); assert.match(await page.locator('#google-state').textContent(),/не выполнен/);
   assert.equal(await page.locator('#api-key').inputValue(),'public_test_api_key_123456789');
   await page.locator('#settings-dialog [data-close]').click();
-  await page.locator('#account-entry').click();
+  await page.locator('#about-button').click();
   await page.locator('#account-login').click();
   await page.locator('#account-channels').getByRole('link',{name:'First channel'}).waitFor();
   await page.locator('#account-switch').click();
@@ -100,7 +102,7 @@ try {
   await failure.addInitScript(() => localStorage.setItem('ytpios.google.v1',JSON.stringify({clientId:'test-client.apps.googleusercontent.com'})));
   await failure.route('https://accounts.google.com/gsi/client',route => route.abort());
   await failure.goto(base);
-  await failure.locator('#account-entry').click();
+  await failure.locator('#about-button').click();
   await failure.waitForFunction(() => document.getElementById('account-status').textContent.includes('Не удалось загрузить'));
   assert.equal(await failure.locator('#account-login').isEnabled(),true);
   assert.equal(await failure.locator('#account-login').getAttribute('aria-busy'),'false');

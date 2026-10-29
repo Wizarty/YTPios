@@ -22,7 +22,8 @@ export function restore(raw) {
     const seen = new Set();
     return data.filter(v => v && idPattern.test(v.id) && !seen.has(v.id) && seen.add(v.id)).map(v => ({
       id: v.id, title: typeof v.title === 'string' ? v.title.slice(0, 160) : `Видео ${v.id}`,
-      saved: v.saved === true, viewed: Number.isFinite(v.viewed) ? v.viewed : 0
+      saved: v.saved === true, viewed: Number.isFinite(v.viewed) ? v.viewed : 0,
+      author:typeof v.author==='string'?v.author.slice(0,160):'',duration:Number.isFinite(v.duration)?Math.max(0,v.duration):0,views:Number.isFinite(v.views)?Math.max(0,v.views):0
     })).slice(0, 500);
   } catch { return []; }
 }

@@ -8,7 +8,8 @@
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.mjs",
-    "test:integration": "node tests/integration-browser.mjs"
+    "test:integration": "node tests/integration-browser.mjs",
+    "test:invidious": "node tests/invidious-browser.mjs"
   },
   "engines": {
     "node": ">=22"

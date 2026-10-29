@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#101010">
-  <meta name="description" content="Личная видеотека с официальным плеером YouTube. Удобно в браузере телефона и компьютера.">
+  <meta name="description" content="Видео, поиск и ваша библиотека. Независимый веб-клиент Invidious."><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="./app.webmanifest"><link rel="apple-touch-icon" href="./player-icon.png">
   <title>YTP — ваша видеотека</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
@@ -12,44 +12,41 @@
 </head>
 <body>
   <header class="topbar">
-    <a href="./" class="brand" aria-label="YTP, главная"><img src="./icon.svg" alt="" width="31" height="31"><strong>YTP<span>web</span></strong></a>
-    <form id="search-form" role="search"><label class="sr-only" for="search">Поиск в вашей видеотеке</label><input id="search" type="search" placeholder="Поиск в видеотеке" autocomplete="off"><button aria-label="Найти" type="submit" class="search-button">⌕</button></form>
-    <button class="add-button" id="add-top"><span>＋</span><span class="desktop-label">Добавить видео</span></button>
+    <button id="nav-toggle" class="icon-button desktop-menu" aria-label="Свернуть меню" aria-expanded="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="./" class="brand" aria-label="YTP, главная"><img src="./icon.svg" alt="" width="32" height="24"><strong>YTP<span>web</span></strong></a>
+    <form id="search-form" role="search"><label class="sr-only" for="search">Поиск видео</label><input id="search" type="search" placeholder="Введите запрос" autocomplete="off"><button aria-label="Найти" type="submit" class="search-button"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0"/></svg></button></form>
+    <button id="mobile-search" class="icon-button" aria-label="Открыть поиск" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0"/></svg></button>
+    <button class="add-button" id="add-top"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg><span class="desktop-label">Добавить</span></button>
+    <button id="open-server" class="icon-button" aria-label="Настройки сервера видео"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M9 2h6l1 3 3 1 3 4v4l-3 4-3 1-1 3H9l-1-3-3-1-3-4v-4l3-4 3-1z"/></svg></button>
     <button class="avatar" id="about-button" aria-label="Мой аккаунт YouTube">Я</button>
   </header>
   <nav class="navigation" aria-label="Разделы">
-    <button data-tab="home" aria-current="page"><span class="nav-icon">⌂</span><span>Главная</span></button>
-    <button data-tab="saved"><span class="nav-icon">♡</span><span>Избранное</span></button>
-    <button data-tab="history"><span class="nav-icon">◷</span><span>История</span></button>
-    <button id="open-subscriptions"><span class="nav-icon">▤</span><span>Подписки</span></button>
-    <div class="sidebar-note">Официальный плеер.<br>Ваша личная подборка.<br><button id="about-sidebar">Как это работает</button></div>
+    <button data-tab="home" aria-current="page"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg><span>Главная</span></button>
+    <button id="open-subscriptions"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10M4 6h16M3 9h18v12H3zM10 12l5 3-5 3z"/></svg><span>Подписки</span></button>
+    <button data-tab="saved"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Сохранённые</span></button>
+    <button data-tab="history"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></svg><span>История</span></button>
+    <div class="sidebar-note"><p>Ваши видео, ваша очередь.<br>В браузере и на главном экране.</p><button id="account-entry">Войти через Google</button><button id="about-sidebar">О приложении</button><a href="./player.html">Проверить PiP на iPhone</a><button id="open-cloud-search">Поиск через Google API</button></div>
   </nav>
   <main id="main">
-    <div class="integration-bar"><a class="chip" href="./player.html">Плеер PWA</a><button class="chip" id="open-cloud-search">Поиск на YouTube</button><button class="chip" id="account-entry">Войти через Google</button></div>
-    <div class="filters"><button class="chip active" data-tab="home">Все видео</button><button class="chip" data-tab="saved">Сохранённые</button><button class="chip" data-tab="history">Недавно открытые</button><a class="chip external" href="https://www.youtube.com" target="_blank" rel="noopener">Открыть YouTube ↗</a></div>
-    <div class="section-heading"><div><p class="eyebrow">ВАШЕ ПРОСТРАНСТВО</p><h1 id="heading">Главная</h1></div><span id="video-count"></span></div>
-    <section id="empty" class="empty-state">
-      <div class="empty-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><img src="./icon.svg" width="76" height="76" alt=""><span class="float-note">Всё любимое рядом</span></div>
-      <h2>С чего начнём просмотр?</h2><p>Добавьте ссылку на видео с YouTube.<br>Соберите свою подборку и смотрите прямо здесь.</p>
-      <button class="primary" id="add-empty">＋ Добавить первое видео</button>
-      <button class="text-button" id="examples">Попробовать на примерах</button>
-      <p class="empty-footnote">Без регистрации · Сохранение в этом браузере</p>
-    </section>
+    <div class="filters"><button class="chip active" data-category="Default">Все</button><button class="chip" data-category="Music">Музыка</button><button class="chip" data-category="Gaming">Игры</button><button class="chip" data-category="Movies">Фильмы</button><button class="chip" data-tab="saved">Сохранённые</button><button class="chip" data-tab="history">Недавно просмотренные</button></div>
+    <div class="section-heading"><h1 id="heading">Главная</h1><span id="video-count"></span></div>
+    <div class="feed-status"><p id="feed-status" role="status"></p><button id="feed-retry" class="chip" hidden>Повторить</button></div>
+    <section id="empty" class="empty-state"><div class="empty-symbol"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg></div><h2>Видео начинаются здесь</h2><p>Подключите сервер Invidious, чтобы увидеть ленту<br>и смотреть видео в собственном плеере.</p><button class="primary" id="connect-empty">Подключить сервер видео</button><button class="text-button" id="add-empty">Добавить ссылку YouTube</button><button class="text-button" id="examples">Попробовать на примерах</button><p class="empty-footnote">Без сервера ссылки открываются в официальном плеере YouTube.</p></section>
     <div id="no-results" hidden><h2>Здесь пока нет видео</h2><p>Добавьте видео или измените поисковый запрос.</p></div>
-    <section id="grid" class="video-grid" aria-label="Видеотека"></section>
+    <section id="grid" class="video-grid" aria-label="Видеотека"></section><button id="feed-more" class="primary" hidden>Показать ещё</button>
     <a id="youtube-search" class="youtube-search" target="_blank" rel="noopener" hidden>Искать на YouTube ↗</a>
-    <footer>YTP — независимый интерфейс с плеером YouTube. <button id="limitations">Возможности и ограничения</button> · <button id="google-settings">Настройки подключения</button></footer>
+    <footer>YTP — независимый видеоклиент. <button id="limitations">Возможности и ограничения</button> · <button id="google-settings">Настройки подключения</button></footer>
   </main>
   <section id="watch" class="watch" hidden aria-label="Просмотр видео">
     <div class="watch-toolbar"><button id="minimize" aria-label="Свернуть плеер">⌄</button><span>Сейчас играет</span><button id="close-player" aria-label="Закрыть плеер">✕</button></div>
     <div class="watch-layout"><div class="watch-main"><div class="player-frame"><div id="player"></div></div>
-      <div class="watch-info"><h2 id="watch-title"></h2><p id="player-status" role="status"></p><div class="watch-actions"><button id="save-current" class="chip">♡ Сохранить</button><button id="share-current" class="chip">↗ Поделиться</button><button id="video-cloud" class="chip">Комментарии и действия</button><a id="open-original" class="chip" target="_blank" rel="noopener">На YouTube ↗</a></div><p class="playback-note">Полный экран, субтитры и качество — в плеере. Доступность PiP и фоновой работы зависит от Safari и YouTube.</p></div></div>
-      <aside class="queue"><div class="queue-header"><h3>Далее</h3><span id="queue-count"></span></div><p class="queue-hint">Добавляйте видео в очередь через кнопку ＋ на карточке.</p><div id="queue-list"></div></aside>
+      <div class="watch-info"><h2 id="watch-title"></h2><p id="player-status" role="status"></p><p id="watch-author" class="watch-author"></p><div class="watch-actions"><button id="native-pip" class="chip" hidden>Картинка в картинке</button><label id="quality-label" class="quality-label" hidden>Качество <select id="quality"></select></label><button id="save-current" class="chip">♡ Сохранить</button><button id="share-current" class="chip">↗ Поделиться</button><button id="video-cloud" class="chip">Комментарии и действия</button><a id="open-original" class="chip" target="_blank" rel="noopener">На YouTube ↗</a></div><p class="playback-note"><span id="playback-mode">Официальный плеер YouTube</span> · PiP и фоновая работа зависят от режима iOS.</p><details id="video-description" hidden><summary>Описание</summary><p id="description-text"></p></details></div></div>
+      <aside class="queue"><div class="queue-header"><h3>Далее</h3><span id="queue-count"></span></div><p class="queue-hint">Добавляйте видео в очередь через кнопку ＋ на карточке.</p><div id="queue-list"></div><h3 class="related-heading">Похожие видео</h3><div id="related-list"></div></aside>
     </div>
   </section>
   <button id="mini-open" hidden><span>Вернуться к просмотру</span><span>↗</span></button>
   <dialog id="add-dialog"><form id="add-form"><div class="dialog-heading"><h2>Добавить видео</h2><button type="button" data-close aria-label="Закрыть">✕</button></div><label for="video-url">Ссылка YouTube</label><input id="video-url" type="text" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" required autocomplete="off"><label for="video-title">Название <span>необязательно</span></label><input id="video-title" maxlength="160" placeholder="Как назовём видео?"><p id="add-error" class="error" role="alert"></p><p class="dialog-note">Поддерживаются обычные видео, Shorts и трансляции. Доступность просмотра определяет YouTube.</p><button type="submit" class="primary">Добавить в видеотеку</button></form></dialog>
-  <dialog id="about-dialog"><div class="dialog-heading"><h2>О YTP</h2><button data-close aria-label="Закрыть">✕</button></div><p>Независимый сайт с официальным плеером и API YouTube.</p><h3>Что сохраняется</h3><p>Видеотека, избранное, история открытия и публичные параметры подключения хранятся в этом браузере. Очистка данных сайта удалит их. Личные подписки и плейлисты загружаются из Google после входа. Токен сессии хранится только в памяти вкладки.</p><h3>Воспроизведение</h3><p>Реклама не блокируется, спонсорские фрагменты не пропускаются. Premium, офлайн-загрузка, фоновое воспроизведение и PiP не предоставляются этим сайтом. Возможности официального плеера зависят от устройства и YouTube.</p><p>При использовании поиска, входа, обложек и плеера браузер обращается к сервисам Google. Запросы Data API используют квоту подключённого проекта.</p></dialog>
+  <dialog id="about-dialog"><div class="dialog-heading"><h2>О YTP</h2><button data-close aria-label="Закрыть">✕</button></div><p>Независимый видеоклиент с подключением Invidious и официальных аккаунтных функций Google.</p><h3>Что сохраняется</h3><p>Видеотека, избранное, история открытия и публичные параметры подключения хранятся в этом браузере. Очистка данных сайта удалит их. Личные подписки и плейлисты загружаются из Google после входа. Токен сессии хранится только в памяти вкладки.</p><h3>Воспроизведение</h3><p>С подключённым Invidious используется собственный плеер с запросом системного PiP. Без сервера работает официальный плеер YouTube с его рекламой и ограничениями. Спонсорские фрагменты не пропускаются. Premium и офлайн-загрузка не предоставляются. Фоновое воспроизведение и PiP зависят от устройства и режима браузера.</p><p>При использовании поиска, входа, обложек и плеера браузер обращается к сервисам Google. Запросы Data API используют квоту подключённого проекта.</p></dialog>
   <dialog id="account-dialog"><div class="dialog-heading"><h2>Ваш YouTube</h2><button data-close aria-label="Закрыть">✕</button></div>
     <p id="account-channel">Войдите, чтобы открыть свои подписки и плейлисты.</p><p>Вход и выбор аккаунта происходят в официальном окне Google. Пароль вводится только у Google.</p>
     <button id="account-login" class="primary" disabled>Войти через Google</button>
@@ -66,6 +63,7 @@
     <form id="cloud-search-form"><label class="sr-only" for="cloud-query">Поиск на YouTube</label><input id="cloud-query" type="search" placeholder="Поиск на YouTube" required><button class="chip" type="submit">Найти</button></form>
     <div id="cloud-actions"></div><p id="cloud-status" role="status"></p><div id="cloud-results"></div><button id="cloud-more" class="primary" hidden>Показать ещё</button>
   </dialog>
+  <dialog id="server-dialog"><div class="dialog-heading"><h2>Сервер видео</h2><button data-close aria-label="Закрыть">✕</button></div><p>Подключите ваш сервер Invidious. Он получает ленту, поиск и видеопотоки. Аккаунт Google ему не передаётся.</p><form id="server-form"><label for="server-url">Адрес Invidious</label><input id="server-url" type="url" placeholder="https://video.example.com" autocomplete="off"><p>Нужен API Invidious с HTTPS и разрешённым CORS для этого сайта. Адреса invidious.io и piped.video сами по себе не являются адресом вашего API.</p><button class="primary" type="submit">Сохранить и загрузить ленту</button></form><button id="disconnect-server" class="text-button">Отключить сервер</button><p id="server-status" role="status"></p></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>

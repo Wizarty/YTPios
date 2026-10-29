@@ -9,7 +9,7 @@ const files = new Map([
   ['/youtube.js', 'youtube.js'], ['/integration.js', 'integration.js'], ['/config.js', 'config.js']
 ]);
 const types = { html: 'text/html; charset=utf-8', js: 'text/javascript; charset=utf-8', css: 'text/css; charset=utf-8', svg: 'image/svg+xml' };
-for (const file of ['player.html','player.css','player.js','player.webmanifest','player-sw.js','player-icon.png','test-video.mp4']) files.set('/'+file,file);
+for (const file of ['player.html','player.css','player.js','player.webmanifest','player-sw.js','player-icon.png','test-video.mp4','app.webmanifest','invidious.js','native-player.js']) files.set('/'+file,file);
 Object.assign(types,{webmanifest:'application/manifest+json',png:'image/png',mp4:'video/mp4'});
 export const server = http.createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
@@ -33,7 +33,7 @@ export const server = http.createServer(async (req, res) => {
       'Content-Type': types[file.split('.').pop()],
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Content-Security-Policy': "default-src 'self'; media-src 'self' blob:; worker-src 'self'; manifest-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com https://accounts.google.com/gsi/client; style-src 'self' https://accounts.google.com/gsi/style; img-src 'self' https://i.ytimg.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      'Content-Security-Policy': "default-src 'self'; media-src 'self' blob: https:; worker-src 'self'; manifest-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com https://accounts.google.com/gsi/client; style-src 'self' https://accounts.google.com/gsi/style; img-src 'self' https://i.ytimg.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
       'Cache-Control': 'no-cache'
     });

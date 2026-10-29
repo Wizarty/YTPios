@@ -34,9 +34,11 @@ jobs:
           npm run build
           npm run test:browser
           npm run test:integration
+          npm run test:invidious
       - run: npm run build
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          INVIDIOUS_URL: ${{ vars.INVIDIOUS_URL }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
